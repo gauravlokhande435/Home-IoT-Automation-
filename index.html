@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IoT Home Automation</title>
+
+<!-- FONTAWESOME FOR ICONS -->
+<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+
+<!-- SOUND FILES -->
+<audio id="clickSound" src="click.mp3"></audio> <!-- You need to add click.mp3 to your project -->
+
+<style>
+:root {
+  --bg:#0f0f0f;
+  --card:#1c1c1c;
+  --text:#f5f5f5;
+  --muted:#b0b0b0;
+}
+
+body.light {
+  --bg:#f4f4f4;
+  --card:#ffffff;
+  --text:#111;
+  --muted:#555;
+}
+
+* {
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:Segoe UI, sans-serif;
+  transition: background 0.5s, color 0.5s, box-shadow 0.5s;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  line-height:1.6;
+}
+
+/* HERO PARTICLES */
+.hero {
+  position: relative;
+  padding:70px 20px 30px;
+  text-align:center;
+  overflow:hidden;
+}
+.hero::before {
+  content:"";
+  position:absolute;
+  top:0; left:0;
+  width:100%; height:100%;
+  background: radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px);
+  background-size:20px 20px;
+  z-index:0;
+  pointer-events:none;
+  animation: moveParticles 15s linear infinite;
+}
+@keyframes moveParticles {
+  0% {background-position:0 0;}
+  100% {background-position:400px 400px;}
+}
+.hero h1, .hero p {position:relative; z-index:1;}
+.hero h1 {font-size:1.7rem; line-height:1.2;}
+.hero p {color:var(--muted); margin-top:8px;}
+
+/* THEME TOGGLE */
+.toggle {
+  position: fixed;
+  top:12px;
+  right:12px;
+  z-index:999;
+}
+.toggle button {
+  background:var(--card);
+  color:var(--text);
+  border:none;
+  padding:8px 14px;
+  border-radius:20px;
+  cursor:pointer;
+  box-shadow:0 0 8px #fff, 0 0 15px #fff;
+  transition: all 0.3s ease;
+}
+body.light .toggle button {
+  box-shadow: 0 0 8px #000, 0 0 15px #000;
+}
+
+/* SECTIONS */
+section { padding:45px 20px; }
+.section-title {
+  font-size:1.4rem;
+  border-left:4px solid var(--text);
+  padding-left:10px;
+  margin-bottom:18px;
+}
+
+/* CARDS WITH GLASSMORPHISM */
+.card {
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(8px);
+  padding:30px;
+  border-radius:16px;
+  box-shadow:0 8px 25px rgba(0,0,0,.25);
+  transition: all 0.3s ease;
+}
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow:0 12px 25px rgba(0,0,0,.35);
+}
+
+/* VIDEO CARD */
+.card.video-card {
+  max-width:900px;
+  margin:0 auto;
+}
+body.light .card.video-card {
+  box-shadow:0 0 5px rgba(0,0,0,0.25), 0 0 10px rgba(0,0,0,0.2);
+}
+
+/* VIDEO */
+video {
+  width:100%;
+  border-radius:12px;
+  display:block;
+  margin:0 auto;
+}
+
+/* IMAGE CONTROL */
+.image-container { width:300px; margin:40px auto; text-align:center; }
+.image-container img {
+  width:100%;
+  border-radius:20px;
+  transition: opacity 0.4s ease, box-shadow 0.3s ease;
+}
+
+/* IMAGE BUTTONS */
+.buttons { text-align:center; margin-top:20px; }
+.buttons button {
+  margin: 12px;
+  padding:12px 25px;
+  font-size:16px;
+  cursor:pointer;
+  border-radius:8px;
+  border:1px solid;
+  transition: all 0.3s ease;
+}
+
+/* DARK MODE IMAGE & BUTTON GLOW */
+body:not(.light) .image-container img,
+body:not(.light) .buttons button {
+  border:1px solid #fff;
+  background:#111;
+  color:#fff;
+  box-shadow:0 0 8px #fff, 0 0 15px #fff;
+}
+
+/* LIGHT MODE IMAGE & BUTTON GLOW */
+body.light .image-container img,
+body.light .buttons button {
+  border:1px solid #000;
+  background:#fff;
+  color:#111;
+  box-shadow:0 0 8px #000, 0 0 15px #000;
+}
+
+/* BUTTON HOVER */
+body:not(.light) .buttons button:hover {
+  transform:scale(1.07);
+  box-shadow:0 0 12px #00ffcc, 0 0 25px #00ffcc, 0 0 50px #00ffcc;
+}
+body.light .buttons button:hover {
+  transform:scale(1.07);
+  box-shadow:0 0 10px rgba(0,0,0,0.2),0 0 20px rgba(0,0,0,0.15);
+}
+
+/* CODE BLOCK */
+pre {
+  background:#000;
+  color:#eaeaea;
+  padding:15px;
+  border-radius:12px;
+  overflow-x:auto;
+  font-size:.8rem;
+}
+
+/* COPY BTN */
+.copy-btn {
+  background:var(--text);
+  color:var(--bg);
+  border:none;
+  padding:8px 14px;
+  border-radius:8px;
+  margin-bottom:10px;
+  cursor:pointer;
+}
+
+/* FOOTER */
+footer { text-align:center; padding:25px; color:var(--muted); }
+
+/* REVEAL */
+.reveal { opacity:0; transform:translateY(30px); transition:.8s ease; }
+.reveal.active { opacity:1; transform:none; }
+
+/* TYPE EFFECT */
+.type-text { white-space:nowrap; overflow:hidden; }
+</style>
+</head>
+
+<body>
+
+<!-- THEME TOGGLE -->
+<div class="toggle">
+  <button onclick="toggleTheme()">Day/Night</button>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <h1 class="type-text" data-text="IoT Home Automation"></h1>
+  <p>Voice Controlled Smart Home using ESP8266</p>
+</div>
+
+<!-- DEMO VIDEO -->
+<section>
+  <div class="section-title">Project Demo</div>
+  <div class="card reveal video-card">
+    <video controls playsinline>
+      <source src="demo.mp4" type="video/mp4">
+    </video>
+  </div>
+</section>
+
+<!-- LIGHT CONTROL -->
+<section>
+  <div class="section-title">Smart Home Light Control</div>
+
+  <div class="image-container">
+    <img id="lightImage" src="image.png">
+  </div>
+
+  <div class="buttons">
+    <button onclick="toggleLight('image1.png')" title="Click to toggle Light 1">Turn On Light-1</button>
+    <button onclick="toggleLight('image2.png')" title="Click to toggle Light 2">Turn On Light-2</button>
+    <button onclick="toggleLight('image3.png')" title="Click to toggle All Lights">Turn On All Lights</button>
+    <button onclick="toggleLight('image4.png')" title="Click to toggle All Off">Turn Off All Lights</button>
+  </div>
+</section>
+
+<!-- All other sections remain exactly same as previous full code -->
+<!-- INTRODUCTION -->
+<section>
+  <div class="section-title">Introduction</div>
+  <div class="card reveal">
+    <p>
+      This project demonstrates a low-cost IoT-based home automation system designed to control household electrical appliances such as lights and fans using voice commands. The system works seamlessly with popular voice assistants like Google Assistant and Amazon Alexa, making it user-friendly and modern. At the core of the system is the ESP8266-based NodeMCU microcontroller, which connects to the internet and communicates with cloud services. A 4-channel relay module is integrated with the NodeMCU to safely switch multiple high-voltage appliances ON or OFF. The project focuses on affordability, compact design, ease of installation, and real-time responsiveness, making it suitable for smart homes, academic demonstrations, and practical everyday use.
+    </p>
+  </div>
+</section>
+
+<!-- WORKING -->
+<section>
+  <div class="section-title">Working</div>
+  <div class="card reveal">
+    The working of the system begins with the NodeMCU establishing a stable connection to a Wi-Fi network, enabling internet access. Once connected, the system listens for control commands sent from cloud platforms such as Sinric Pro or IFTTT, which act as intermediaries between the voice assistant and the hardware. When a user gives a voice command through Google Assistant or Amazon Alexa, the command is first interpreted by the respective voice assistant and then forwarded to the cloud service. The cloud service processes the request and sends a corresponding signal to the NodeMCU over the internet. Upon receiving this signal, the NodeMCU activates or deactivates the appropriate relay channel, thereby controlling the connected household appliance in real time.
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section>
+  <div class="section-title">Features</div>
+  <div class="card reveal">
+    • Voice control<br>
+    • Remote access<br>
+    • Low cost<br>
+    • Real-time response<br>
+    • Scheduling<br>
+    • Manual override
+  </div>
+</section>
+
+<!-- DEMO STEPS -->
+<section>
+  <div class="section-title">Demo Steps</div>
+  <div class="card reveal">
+    1. Power ON NodeMCU<br>
+    2. Connect to Wi-Fi<br>
+    3. Open Assistant<br>
+    4. Say “Turn ON light”<br>
+    5. Appliance responds
+  </div>
+</section>
+
+<!-- SOURCE CODE -->
+<section>
+  <div class="section-title">Source Code</div>
+  <div class="card reveal">
+    <button class="copy-btn" onclick="copyCode()">Copy Code</button>
+<pre id="sourceCode">
+#include <Arduino.h>
+#include <ESP8266WiFi.h>
+#include <SinricPro.h>
+#include <SinricProSwitch.h>
+
+/* ========= USER CONFIG ========= */
+
+#define WIFI_SSID     "TEST_ESP"
+#define WIFI_PASS     "12345678"
+
+#define APP_KEY       "47c4524f-eeb0-4d86-947e-66d05b8bf5f8"
+#define APP_SECRET    "6c09be76-fde1-4e66-a15f-ea0c410fbf8b-18bb5a2c-2d21-4a36-a099-771b5cfaac2b"
+
+#define DEVICE1_ID    "6973652040cb098d90c4da57"
+#define DEVICE2_ID    "697363d57e0883bc2690cd78"
+#define DEVICE3_ID    "6973628740cb098d90c4d850"
+#define DEVICE4_ID    "xxxxxxxxxxxxxxxxxxxxxxxx"
+
+/* ========= PIN CONFIG ========= */
+
+#define RELAY1 5   // D1
+#define RELAY2 4   // D2
+#define RELAY3 14  // D5
+#define RELAY4 12  // D6
+
+#define SW1 13     // D7
+#define SW2 16     // D0
+#define SW3 2      // D4
+#define SW4 15     // D8
+
+#define WIFI_LED 16
+#define DEBOUNCE_MS 250
+
+/* ========= STRUCT ========= */
+
+struct Device {
+  const char* id;
+  uint8_t relay;
+  uint8_t sw;
+  bool lastState;
+  unsigned long lastChange;
+};
+
+/* ========= DEVICES ========= */
+
+Device devices[] = {
+  { DEVICE1_ID, RELAY1, SW1, HIGH, 0 },
+  { DEVICE2_ID, RELAY2, SW2, HIGH, 0 },
+  { DEVICE3_ID, RELAY3, SW3, HIGH, 0 },
+  { DEVICE4_ID, RELAY4, SW4, HIGH, 0 }
+};
+
+const uint8_t DEVICE_COUNT = sizeof(devices) / sizeof(devices[0]);
+
+/* ========= SINRIC CALLBACK ========= */
+
+bool onPowerState(const String &deviceId, bool &state) {
+  for (uint8_t i = 0; i < DEVICE_COUNT; i++) {
+    if (deviceId == devices[i].id) {
+      digitalWrite(devices[i].relay, state ? LOW : HIGH);
+      return true;
+    }
+  }
+  return false;
+}
+
+/* ========= SETUP ========= */
+
+void setupRelays() {
+  for (uint8_t i = 0; i < DEVICE_COUNT; i++) {
+    pinMode(devices[i].relay, OUTPUT);
+    digitalWrite(devices[i].relay, HIGH); // OFF
+  }
+}
+
+void setupSwitches() {
+  for (uint8_t i = 0; i < DEVICE_COUNT; i++) {
+    pinMode(devices[i].sw, INPUT_PULLUP);
+  }
+}
+
+void setupWiFi() {
+  WiFi.begin(WIFI_SSID, WIFI_PASS);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(300);
+  }
+  digitalWrite(WIFI_LED, LOW);
+}
+
+void setupSinric() {
+  for (uint8_t i = 0; i < DEVICE_COUNT; i++) {
+    SinricProSwitch &sw = SinricPro[devices[i].id];
+    sw.onPowerState(onPowerState);
+  }
+  SinricPro.begin(APP_KEY, APP_SECRET);
+  SinricPro.restoreDeviceStates(true);
+}
+
+/* ========= LOOP ========= */
+
+void handleSwitches() {
+  unsigned long now = millis();
+
+  for (uint8_t i = 0; i < DEVICE_COUNT; i++) {
+    bool current = digitalRead(devices[i].sw);
+
+    if (current != devices[i].lastState &&
+        (now - devices[i].lastChange) > DEBOUNCE_MS) {
+
+      devices[i].lastChange = now;
+      devices[i].lastState = current;
+
+      if (current == LOW) {
+        bool relayState = !digitalRead(devices[i].relay);
+        digitalWrite(devices[i].relay, relayState);
+
+        SinricProSwitch &sw = SinricPro[devices[i].id];
+        sw.sendPowerStateEvent(!relayState);
+      }
+    }
+  }
+}
+
+void setup() {
+  Serial.begin(9600);
+
+  pinMode(WIFI_LED, OUTPUT);
+  digitalWrite(WIFI_LED, HIGH);
+
+  setupRelays();
+  setupSwitches();
+  setupWiFi();
+  setupSinric();
+}
+
+void loop() {
+  SinricPro.handle();
+  handleSwitches();
+}
+</pre>
+  </div>
+</section>
+
+<!-- CONCLUSION -->
+<section id="conclusion">
+  <div class="section-title">Conclusion & Acknowledgement</div>
+
+  <div class="card reveal">
+    <p>
+      This IoT Based Home Automation project successfully demonstrates how
+      modern smart home technology can be implemented using low-cost and
+      easily available components. By integrating the ESP8266 NodeMCU with
+      cloud platforms and voice assistants, the system provides a reliable,
+      user-friendly, and efficient solution for controlling household
+      appliances.
+    </p>
+
+    <p style="margin-top:12px;">
+      The project highlights the practical application of IoT concepts such
+      as cloud communication, wireless control, and real-time automation,
+      making it highly suitable for academic demonstrations and future
+      enhancements.
+    </p>
+
+    <p style="margin-top:12px; font-weight:600;">
+      Key Benefits:
+    </p>
+
+    <ul style="margin-left:18px; color:var(--muted);">
+      <li>Hands-free appliance control using voice commands</li>
+      <li>Remote access from anywhere through the internet</li>
+      <li>Low-cost, scalable, and compact system design</li>
+      <li>Improved convenience, comfort, and energy efficiency</li>
+      <li>Practical learning experience of IoT and cloud integration</li>
+    </ul>
+
+    <p style="margin-top:15px;">
+      We would like to sincerely thank our faculty and institution for their
+      guidance and support throughout the development of this project. Their
+      valuable feedback and encouragement played a crucial role in the
+      successful completion of this work.
+    </p>
+
+    <p style="margin-top:10px; font-weight:600;">
+      Thank you for reviewing our project.
+    </p>
+  </div>
+</section>
+
+<footer>
+  IoT Home Automation Project • Version 3.0
+</footer>
+
+<script>
+/* THEME TOGGLE */
+function toggleTheme(){
+  document.body.classList.toggle("light");
+  localStorage.setItem("theme", document.body.classList.contains("light") ? "light" : "dark");
+}
+if(localStorage.getItem("theme")==="light") document.body.classList.add("light");
+
+/* REVEAL */
+function reveal(){
+  document.querySelectorAll(".reveal").forEach(el=>{
+    if(el.getBoundingClientRect().top < window.innerHeight-100){
+      el.classList.add("active");
+    }
+  });
+}
+window.addEventListener("scroll",reveal);
+window.addEventListener("load",reveal);
+
+/* TYPE EFFECT */
+function typeEffect(el,speed=20){
+  const text=el.dataset.text;
+  el.textContent="";
+  let i=0;
+  const t=setInterval(()=>{
+    el.textContent+=text[i++];
+    if(i>=text.length) clearInterval(t);
+  },speed);
+}
+const obs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting && !e.target.classList.contains("typed")){
+      e.target.classList.add("typed");
+      typeEffect(e.target,20);
+    }
+  });
+},{threshold:.6});
+document.querySelectorAll(".type-text").forEach(el=>obs.observe(el));
+
+/* COPY CODE */
+function copyCode(){
+  navigator.clipboard.writeText(
+    document.getElementById("sourceCode").innerText
+  );
+  alert("Code copied!");
+}
+
+/* LIGHT TOGGLE WITH SOUND */
+const defaultImage = 'image.png';
+const lightStates = { 'image1.png': false, 'image2.png': false, 'image3.png': false, 'image4.png': false };
+const clickSound = document.getElementById('clickSound');
+
+function toggleLight(imageName){
+  clickSound.play(); // PLAY SOUND
+  const img=document.getElementById('lightImage');
+  if(lightStates[imageName]){
+    lightStates[imageName]=false;
+    img.style.opacity=0;
+    setTimeout(()=>{ img.src=defaultImage; img.style.opacity=1; },200);
+  } else {
+    for(let key in lightStates) lightStates[key]=false;
+    lightStates[imageName]=true;
+    img.style.opacity=0;
+    setTimeout(()=>{ img.src=imageName; img.style.opacity=1; },200);
+  }
+}
+</script>
+
+</body>
+</html>
